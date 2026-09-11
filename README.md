@@ -162,9 +162,9 @@ Setelah menjalankan `php artisan db:seed`, tiga akun berikut tersedia (password 
 
 | Peran | Email | Password |
 |---|---|---|
-| Admin | `admin@bwastemap.test` | `password` |
-| Petugas | `petugas@bwastemap.test` | `password` |
-| Masyarakat | `warga@bwastemap.test` | `password` |
+| Admin | `admin@bwastemap.test` | `********` |
+| Petugas | `petugas@bwastemap.test` | `********` |
+| Masyarakat | `warga@bwastemap.test` | `********` |
 
 ## Menjalankan Pengujian
 
