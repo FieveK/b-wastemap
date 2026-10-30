@@ -1,0 +1,37 @@
+Wilayah administratif Kota Banjarmasin
+
+Source: Cahya DSN, cahyadsn/wilayah_boundaries
+Snapshot: 26fce16d15cc1dc53da79a79359373130cae485d
+Source repository states that these boundaries follow Kepmendagri No. 300.2.2-2430 Tahun 2025.
+
+Districts: db/kec/wilayah_boundaries_kec_63.sql (filtered to Kota Banjarmasin, code 63.71)
+Neighborhoods: db/kel/63/wilayah_boundaries_kel_63.71.sql
+Source files updated 2026-07-29 and 2026-08-20, respectively.
+Retrieved 2026-10-22. Coordinates converted from [latitude, longitude] to GeoJSON [longitude, latitude].
+
+Map rendering: the five district outlines and outer city outline use the exterior rings of topological unions of the 52 neighborhood polygons, keeping shared borders aligned. The neighborhood layer is filled by district and keeps neighborhood outlines visible.
+
+This data is for map visualization and must not be treated as a certified legal boundary source.
+The Bappeda Litbang page supplied with this project lists district and neighborhood websites; it is not the source of these GIS coordinates.
+
+MIT License
+
+Copyright (c) 2024 Cahya DSN
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

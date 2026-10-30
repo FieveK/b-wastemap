@@ -1,0 +1,1 @@
+<img src="{{ asset('images/b-wastemap-logo-utama.png') }}" alt="B-WasteMap — Petakan, Pantau, dan Tangani" {{ $attributes->merge(['class' => 'object-contain']) }}>

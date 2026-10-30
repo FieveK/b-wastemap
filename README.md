@@ -1,207 +1,59 @@
 # B-WasteMap
 
-**B-WasteMap** adalah aplikasi web pemetaan dan pelaporan titik sampah liar berbasis **Laravel**, dibuat untuk membantu warga dan pemerintah **Kota Banjarmasin** memantau, melaporkan, dan menangani tumpukan sampah liar secara kolaboratif dan berbasis data lokasi.
+Sistem web pemetaan dan pemantauan riwayat titik sampah liar di Kota Banjarmasin. Warga mengirim laporan berfoto, admin memverifikasi dan menugaskan petugas, lalu petugas mencatat hasil penanganan. Laporan dalam radius 50 meter dapat ditautkan ke riwayat titik yang sama.
 
-Warga dapat melaporkan temuan sampah liar lengkap dengan foto dan titik koordinat langsung dari peta. Sistem secara otomatis mengelompokkan laporan yang berdekatan ke satu titik yang sama, menandai titik yang berulang kali dilaporkan, lalu admin dapat memverifikasi dan menugaskan petugas kebersihan untuk menanganinya.
+## Fitur
 
----
+- Peta publik dengan pencarian, filter status, dan riwayat titik.
+- Warga dapat melapor tanpa login. Foto JPG/JPEG bergeotag dipakai untuk membaca koordinat GPS EXIF; wilayah kelurahan/kecamatan diambil dari batas GeoJSON, alamat dicari dari koordinat, dan akurasi GPS ditampilkan.
+- Foto Open Camera maksimal 10 MB; tulisan lokasi harus terlihat pada foto dan koordinatnya cocok dengan titik peta.
+- Laporan aktif pada lokasi dan hari yang sama dalam radius 50 meter digabungkan dengan bukti terbaru. Setelah penanganan selesai, laporan baru membuat kejadian baru.
+- Verifikasi admin, pemeriksaan kandidat titik dalam radius 50 meter, dan penugasan petugas.
+- Pembaruan status petugas dengan foto sebelum-sesudah dan catatan.
+- Token progres anonim, pelacakan status publik, dan QR yang dapat diunduh.
+- Notifikasi pop-up website untuk admin; akun admin/petugas punya alur lupa password.
+- Dashboard, analitik dengan filter tanggal/wilayah, ekspor CSV, dan pengelolaan akun.
 
-## Daftar Isi
+## Menjalankan di Laragon
 
-- [Fitur Utama](#fitur-utama)
-- [Alur Kerja Aplikasi](#alur-kerja-aplikasi)
-- [Logika Inti: Deteksi Titik Berulang](#logika-inti-deteksi-titik-berulang)
-- [Peran Pengguna](#peran-pengguna)
-- [Teknologi yang Digunakan](#teknologi-yang-digunakan)
-- [Skema Basis Data](#skema-basis-data)
-- [Instalasi](#instalasi)
-- [Akun Contoh (Seeder)](#akun-contoh-seeder)
-- [Menjalankan Pengujian](#menjalankan-pengujian)
-- [Struktur Folder Penting](#struktur-folder-penting)
+Prasyarat: PHP 8.3+ dengan ekstensi `exif` aktif, Composer, Node.js/npm, dan MySQL.
 
----
+Di Open Camera, aktifkan penyimpanan data lokasi/GPS dan stempel lokasi pada foto. Form membaca koordinat dari EXIF; unggah foto JPG/JPEG asli maksimal 10 MB. Pastikan tulisan lokasi juga terlihat pada gambar.
 
-## Fitur Utama
+1. Buka terminal di folder proyek, lalu jalankan:
 
-- 🗺️ **Peta interaktif publik** — menampilkan seluruh titik sampah di Kota Banjarmasin menggunakan Leaflet.js + OpenStreetMap, tanpa perlu login.
-- 🎨 **Indikator status berwarna** — hijau (normal), kuning (perlu perhatian), merah (titik berulang), langsung terlihat di peta.
-- 📸 **Form pelaporan berbasis peta** — warga cukup klik lokasi di peta dan mengunggah foto untuk membuat laporan baru.
-- 🤖 **Pengelompokan lokasi otomatis** — laporan baru dalam radius 50 meter dari titik yang sudah ada akan otomatis digabungkan ke titik tersebut (lihat [Logika Inti](#logika-inti-deteksi-titik-berulang)).
-- ✅ **Verifikasi & penolakan laporan oleh admin** sebelum laporan masuk ke sistem penanganan.
-- 👷 **Penugasan & pelacakan penanganan petugas** — lengkap dengan foto sebelum/sesudah dan catatan pekerjaan.
-- 📜 **Riwayat per titik lokasi** — jejak audit setiap kejadian: dilaporkan → diverifikasi → dibersihkan → muncul kembali.
-- 📊 **Dashboard admin** — total titik, laporan baru, laporan dalam penanganan, jumlah titik berulang, serta grafik distribusi per kecamatan dan per status (Chart.js).
-- 🔐 **Kontrol akses berbasis peran** (admin, petugas, masyarakat) melalui middleware khusus.
-- 🔑 **Autentikasi lengkap** (login, registrasi, verifikasi email, reset password) menggunakan Laravel Breeze.
+   ```powershell
+   composer install
+   npm install
+   ```
 
-## Alur Kerja Aplikasi
+2. Buat database MySQL bernama `b_wastemap` melalui phpMyAdmin atau MySQL.
+3. Salin `.env.example` menjadi `.env` jika file `.env` belum ada. Pastikan `DB_DATABASE=b_wastemap`, `DB_USERNAME=root`, dan `DB_PASSWORD` sesuai Laragon.
+4. Siapkan aplikasi dan data awal:
 
-```
-1. Warga (masyarakat) membuka peta publik → klik "Laporkan" → pilih lokasi di peta,
-   unggah foto, isi jenis & deskripsi sampah → kirim laporan.
-        ↓
-2. Laporan berstatus "menunggu_verifikasi".
-        ↓
-3. Admin meninjau laporan masuk:
-      - Diverifikasi → sistem otomatis mencari/mencocokkan titik_sampah terdekat.
-      - Ditolak      → laporan berhenti di sini.
-        ↓
-4. Admin menugaskan seorang Petugas ke laporan yang sudah terverifikasi.
-        ↓
-5. Petugas memperbarui status penanganan: ditugaskan → dalam_penanganan → selesai
-   (dengan foto sebelum & sesudah + catatan).
-        ↓
-6. Saat selesai, riwayat titik dicatat dan status titik_sampah diperbarui otomatis
-   (normal / perlu_perhatian / berulang) berdasarkan jumlah laporan yang diterima.
-```
+   ```powershell
+   php artisan key:generate
+   php artisan migrate --seed
+   php artisan storage:link
+   npm run build
+   ```
 
-## Logika Inti: Deteksi Titik Berulang
+5. Jalankan aplikasi:
 
-Bagian paling khas dari aplikasi ini ada di `App\Services\TitikSampahService`. Ketika admin memverifikasi sebuah laporan:
+   ```powershell
+   php artisan serve
+   ```
 
-1. Sistem menghitung jarak laporan tersebut ke semua titik sampah yang sudah tercatat menggunakan **formula Haversine** langsung di level query database.
-2. Jika ditemukan titik dalam radius **50 meter**, laporan digabungkan ke titik itu (`total_laporan` bertambah, tidak membuat duplikat titik baru).
-3. Jika tidak ada titik dalam radius tersebut, sebuah `TitikSampah` baru dibuat.
-4. Status titik diperbarui otomatis berdasarkan jumlah laporan yang masuk:
+   Buka `http://127.0.0.1:8000`.
 
-   | Jumlah `total_laporan` | Status            | Warna di peta |
-   |---|---|---|
-   | 1                     | `normal`           | 🟢 Hijau  |
-   | 2–3                   | `perlu_perhatian`  | 🟡 Kuning |
-   | > 3                   | `berulang`         | 🔴 Merah  |
+Reset password memakai email Laravel. `.env.example` memakai `MAIL_MAILER=log`; atur SMTP di `.env` agar tautan reset terkirim ke kotak masuk.
 
-5. Setiap perubahan dicatat sebagai entri baru pada `RiwayatTitik` untuk keperluan audit/histori.
+## Akun demo lokal
 
-## Peran Pengguna
+| Peran | Email | Kata sandi |
+| --- | --- | --- |
+| Admin | `admin@bwastemap.test` | `password` |
+| Petugas | `petugas@bwastemap.test` | `password` |
+| Masyarakat | `warga@bwastemap.test` | `password` |
 
-| Peran | Hak Akses |
-|---|---|
-| **Masyarakat** (default) | Melihat peta publik, membuat laporan, melihat daftar laporan miliknya sendiri |
-| **Admin** | Semua hak masyarakat + dashboard statistik, verifikasi/tolak laporan, menugaskan petugas |
-| **Petugas** | Melihat daftar tugas penanganan yang diberikan kepadanya, memperbarui status & bukti penanganan |
-
-Kontrol akses diterapkan melalui middleware `role:admin` / `role:petugas` (lihat `app/Http/Middleware/RoleMiddleware.php`).
-
-## Teknologi yang Digunakan
-
-**Backend**
-- PHP ^8.3
-- Laravel Framework ^13.17
-- Laravel Breeze (scaffolding autentikasi)
-- SQLite (default, dapat diganti MySQL/PostgreSQL di `.env`)
-
-**Frontend**
-- Blade Templates
-- Tailwind CSS 3 + Alpine.js
-- Vite (build tool)
-- Leaflet.js 1.9.4 + OpenStreetMap (peta interaktif)
-- Chart.js (grafik statistik dashboard)
-
-**Pengujian**
-- PHPUnit ^12
-
-## Skema Basis Data
-
-Tabel utama di luar skema bawaan Laravel (users, sessions, dll.):
-
-| Tabel | Deskripsi | Relasi Penting |
-|---|---|---|
-| `titik_sampah` | Satu titik lokasi unik di peta beserta status & akumulasi jumlah laporan/penanganan | `hasMany` Laporan, `hasMany` RiwayatTitik |
-| `laporan` | Laporan yang dikirim warga (foto, koordinat, jenis sampah, status verifikasi) | `belongsTo` User (pelapor), `belongsTo` TitikSampah, `hasOne` Penanganan |
-| `penanganan` | Proses penindaklanjutan oleh petugas atas sebuah laporan | `belongsTo` Laporan, `belongsTo` User (petugas) |
-| `riwayat_titik` | Log/histori kejadian pada sebuah titik sampah | `belongsTo` TitikSampah, `belongsTo` Laporan |
-
-Kolom `role` pada tabel `users` bertipe enum: `admin`, `petugas`, `masyarakat` (default).
-
-## Instalasi
-
-**Prasyarat:** PHP ^8.3, Composer, Node.js & npm.
-
-```bash
-# 1. Masuk ke folder project
-cd b-wastemap
-
-# 2. Install dependency PHP
-composer install
-
-# 3. Salin file environment & generate key aplikasi
-cp .env.example .env
-php artisan key:generate
-
-# 4. Jalankan migrasi database (default: SQLite)
-touch database/database.sqlite   # jika DB_CONNECTION=sqlite
-php artisan migrate
-
-# (opsional) isi akun contoh
-php artisan db:seed
-
-# 5. Buat symlink storage agar foto laporan bisa diakses publik
-php artisan storage:link
-
-# 6. Install dependency frontend & build asset
-npm install
-npm run build
-```
-
-Jalankan mode pengembangan (server + queue + Vite sekaligus, disediakan oleh script `dev` di `composer.json`):
-
-```bash
-composer run dev
-```
-
-Atau secara manual:
-
-```bash
-php artisan serve   # http://localhost:8000
-npm run dev          # Vite dev server, di terminal terpisah
-```
-
-## Akun Contoh (Seeder)
-
-Setelah menjalankan `php artisan db:seed`, tiga akun berikut tersedia (password untuk semuanya: `password`):
-
-| Peran | Email | Password |
-|---|---|---|
-| Admin | `admin@bwastemap.test` | `********` |
-| Petugas | `petugas@bwastemap.test` | `********` |
-| Masyarakat | `warga@bwastemap.test` | `********` |
-
-## Menjalankan Pengujian
-
-```bash
-composer test
-# atau
-php artisan test
-```
-
-Pengujian mencakup alur autentikasi bawaan Breeze, manajemen profil, serta pengujian khusus logika penggabungan titik berdasarkan radius (`tests/Feature/TitikSampahServiceTest.php`).
-
-## Struktur Folder Penting
-
-```
-app/
-├── Http/Controllers/
-│   ├── PetaController.php              # Peta publik + API data titik
-│   ├── LaporanController.php           # Pembuatan laporan oleh warga
-│   ├── TitikSampahController.php       # Detail & riwayat satu titik
-│   ├── AdminDashboardController.php    # Statistik dashboard admin
-│   ├── AdminLaporanController.php      # Verifikasi/tolak laporan
-│   ├── AdminPenangananController.php   # Penugasan petugas
-│   └── PetugasController.php           # Daftar & update tugas petugas
-├── Http/Middleware/RoleMiddleware.php  # Guard akses berbasis peran
-├── Models/                             # TitikSampah, Laporan, Penanganan, RiwayatTitik, User
-└── Services/TitikSampahService.php     # Logika Haversine & klasifikasi status titik
-
-resources/views/
-├── peta/index.blade.php                # Peta publik (Leaflet)
-├── laporan/                            # Form & daftar laporan warga
-├── admin/                              # Dashboard & manajemen laporan admin
-└── petugas/tugas.blade.php             # Daftar tugas petugas
-
-database/migrations/                    # Skema titik_sampah, laporan, penanganan, riwayat_titik
-routes/web.php                          # Definisi seluruh rute aplikasi
-```
-
----
-
-Dibangun di atas [Laravel](https://laravel.com) dengan [Laravel Breeze](https://laravel.com/docs/starter-kits#breeze).
+Akun demo dibuat oleh seeder untuk pengembangan lokal. Ganti atau hapus sebelum aplikasi dipasang di server publik.
